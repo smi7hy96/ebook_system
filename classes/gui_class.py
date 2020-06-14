@@ -1,4 +1,5 @@
 import tkinter as tk
+from preset_variables import *
 
 
 class Page(tk.Frame):
@@ -77,10 +78,9 @@ class Page1(Page):
 
     def create_user(self, first_name, last_name, email, password): # ADD CLASS OBJECT TO STORE USER/ SQL QUERY
         self.response_string.set("User Created!!")
-        print(first_name)
-        print(last_name)
-        print(email)
-        print(password)
+        user_list.append(User((len(user_list) + 1), password, first_name, last_name, email))
+        print(user_list[-1].user_id)
+        print(user_list[-1].first_name)
 
     def focus_in(self, type):
         if type == "fn":
@@ -162,13 +162,14 @@ class Page2(Page):
             self.book_genre.insert(0, 'Genre')
             self.book_release_date.delete("0", "end")
             self.book_release_date.insert(0, 'Release Date')
-            self.create_user(title, genre, release_date)
+            self.create_book(title, genre, release_date)
 
-    def create_user(self, title, genre, release_date):  # ADD CLASS OBJECT TO STORE USER/ SQL QUERY
+    def create_book(self, title, genre, release_date):  # ADD CLASS OBJECT TO STORE USER/ SQL QUERY
         self.response_string.set("Book Created!!")
-        print(title)
-        print(genre)
-        print(release_date)
+        book_list.append(EBook((len(book_library_list) + 1), title, genre, release_date))
+        book_library_list.append(book_list[-1])
+        print(book_list[-1].book_id)
+        print(book_list[-1].title)
 
     def focus_in(self, type):
         if type == "bt":
@@ -238,16 +239,16 @@ class Page3(Page):
             book.pack_forget()
         book_list_buttons = []
         for i in range(len(book_list)):
-            buttons.append(tk.Button(self.page_3_frame, text=book_list[i], command=lambda i=i: self.open_this(i)))
+            buttons.append(tk.Button(self.page_3_frame, text=book_list[i].title, command=lambda i=i: self.open_this(i)))
         return buttons
 
     def open_this(self, i):
         self.submit_button['state'] = 'normal'
         self.book_number_final = i
-        self.book_details_string.set(f"{book_list[i]} selected. Are you sure?")
+        self.book_details_string.set(f"{book_list[i].title} selected. Are you sure?")
 
     def confirm_booking(self):
-        book_title = book_list[self.book_number_final]
+        book_title = book_list[self.book_number_final].title
         self.book_details_string.set("")
         self.book_details_label.pack_forget()
         self.submit_button.pack_forget()
@@ -256,7 +257,7 @@ class Page3(Page):
             book.pack_forget()
 
         book_list_buttons = []
-        rented_books.append(book_list[self.book_number_final])
+        selected_user.books.append(book_list[self.book_number_final])
         book_list.pop(int(self.book_number_final))
         if len(self.get_books()) > 0:
             for book in self.get_books():
@@ -270,7 +271,6 @@ class Page3(Page):
             self.book_details_string.set("No more books left!")
             self.book_details_label.pack()
         print(f"{book_title} Confirmed! Enjoy!")
-
 
     def rent_book_page_open(self):
         self.refresh_books()
@@ -300,7 +300,7 @@ class Page4(Page):
         self.grid_columnconfigure(0, weight=1)
 
     def refresh_books(self):
-        if len(rented_books) == 0:
+        if len(selected_user.books) == 0:
             self.book_details_string.set("No more books left!")
             self.submit_button['state'] = 'disabled'
         else:
@@ -323,17 +323,17 @@ class Page4(Page):
         for book in rented_books_buttons:
             book.pack_forget()
         rented_books_buttons = []
-        for i in range(len(rented_books)):
-            buttons.append(tk.Button(self.page_4_frame, text=rented_books[i], command=lambda i=i: self.open_this(i)))
+        for i in range(len(selected_user.books)):
+            buttons.append(tk.Button(self.page_4_frame, text=selected_user.books[i].title, command=lambda i=i: self.open_this(i)))
         return buttons
 
     def open_this(self, i):
         self.submit_button['state'] = 'normal'
         self.book_number_final = i
-        self.book_details_string.set(f"{rented_books[i]} selected. Are you sure?")
+        self.book_details_string.set(f"{selected_user.books[i].title} selected. Are you sure?")
 
     def confirm_return(self):
-        book_title = rented_books[self.book_number_final]
+        book_title = selected_user.books[self.book_number_final].title
         self.book_details_string.set("")
         self.book_details_label.pack_forget()
         self.submit_button.pack_forget()
@@ -341,9 +341,9 @@ class Page4(Page):
         for book in rented_books_buttons:
             book.pack_forget()
         rented_books_buttons = []
-        book_list.append(rented_books[self.book_number_final])
-        book_list.sort()
-        rented_books.pop(int(self.book_number_final))
+        book_list.append(selected_user.books[self.book_number_final])
+        book_list.sort(key=lambda x: x.title)
+        selected_user.books.pop(int(self.book_number_final))
         if len(self.get_books()) > 0:
             for book in self.get_books():
                 rented_books_buttons.append(book)
@@ -355,13 +355,11 @@ class Page4(Page):
         else:
             self.book_details_string.set("No more books left!")
             self.book_details_label.pack()
-        print(f"{book_title} Confirmed! Enjoy!")
+        print(f"{book_title} Returned! Hope you enjoyed it!!")
 
     def rent_book_page_open(self):
         self.refresh_books()
         self.lift()
-
-
 
 
 class Page5(Page):
@@ -442,7 +440,6 @@ class MainView(tk.Frame):
         def login():
             p5.show()
             if check_login_details():
-                user_id = p5.user_id.get()
                 p5.user_id.delete(0, 'end')
                 p5.user_password.delete(0, 'end')
                 b1.config(state="normal")
@@ -451,17 +448,26 @@ class MainView(tk.Frame):
                 b4.config(state="normal")
                 b5.config(text="logout", command=logout)
                 p6.show()
-                p6.landing_message.set(f"HOMEPAGE \n Welcome {user_id}! \n Use the buttons above to navigate the application")
+                p6.landing_message.set(f"HOMEPAGE \n Welcome {selected_user.first_name}! \n Use the buttons above to navigate the application")
             else:
                 p5.incorrect_login()
 
         def check_login_details(): # ADD SQL QUERY TO CHECK PASSWORD
-            print(p5.user_id.get())
-            if p5.user_id.get() == '1' and p5.user_password.get() == 'pass':
-                return True
-            else:
-                return False
-
+            found = False
+            password = ''
+            for userid in user_list:
+                if p5.user_id.get() == str(userid.user_id):
+                    found = True
+                    password = userid.password
+                    break
+            if found:
+                if p5.user_password.get() == password:
+                    global selected_user
+                    selected_user = userid
+                    return True
+                else:
+                    return False
+            return False
 
         def logout():
             p6.show()
@@ -478,7 +484,6 @@ class MainView(tk.Frame):
         b4 = tk.Button(buttonframe, text="Return Book", state="disabled", command=p4.rent_book_page_open)
         b5 = tk.Button(buttonframe, text="Login", command=login)
 
-
         b1.pack(side="left")
         b2.pack(side="left")
         b3.pack(side="left")
@@ -490,15 +495,9 @@ class MainView(tk.Frame):
 
 
 
-
-book_list = ['book 1', 'book 2', 'book 3', 'book 4']
+book_list = [ebook_1, ebook_2, ebook_3, ebook_4]
+book_library_list = book_list.copy()
 book_list_buttons = []
-rented_books = []
 rented_books_buttons = []
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    main = MainView(root)
-    main.pack(side="top", fill="both", expand=True)
-    root.wm_geometry("400x400")
-    root.mainloop()
+user_list = [user_1, user_2]
+selected_user=''
