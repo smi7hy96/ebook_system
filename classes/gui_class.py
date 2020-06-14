@@ -200,11 +200,6 @@ class Page3(Page):
         self.book_number_final = 0
 
         self.book_buttons = []
-        for button in self.get_books():
-            self.book_buttons.append(button)
-
-        for book in self.book_buttons:
-            book.pack()
 
         self.book_details_string = tk.StringVar(value="")
         self.book_details_label = tk.Label(self.page_3_frame, textvariable=self.book_details_string)
@@ -212,17 +207,38 @@ class Page3(Page):
 
         self.submit_button = tk.Button(self.page_3_frame, text="Confirm Booking", state='disabled', command=self.confirm_booking)
         self.submit_button.pack()
-
         self.page_3_frame.grid(row=0, column=0)
         self.page_3_frame.grid_rowconfigure(0, weight=1)
         self.page_3_frame.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
+    def refresh_books(self):
+        global book_list_buttons
+        if len(book_list) == 0:
+            self.book_details_string.set("No more books left!")
+            self.submit_button['state'] = 'disabled'
+        else:
+            self.book_details_string.set("")
+            self.submit_button['state'] = 'normal'
+        for book in book_list_buttons:
+            book.pack_forget()
+        book_list_buttons = []
+        for button in self.get_books():
+            book_list_buttons.append(button)
+        self.submit_button.pack_forget()
+        for book in book_list_buttons:
+            book.pack()
+        self.submit_button.pack()
+
     def get_books(self):
+        global book_list_buttons
         buttons = []
+        for book in book_list_buttons:
+            book.pack_forget()
+        book_list_buttons = []
         for i in range(len(book_list)):
-            buttons.append(tk.Button(self.page_3_frame, text=book_list[i], command=lambda i=i:self.open_this(i)))
+            buttons.append(tk.Button(self.page_3_frame, text=book_list[i], command=lambda i=i: self.open_this(i)))
         return buttons
 
     def open_this(self, i):
@@ -235,16 +251,18 @@ class Page3(Page):
         self.book_details_string.set("")
         self.book_details_label.pack_forget()
         self.submit_button.pack_forget()
-        for book in self.book_buttons:
+        global book_list_buttons
+        for book in book_list_buttons:
             book.pack_forget()
 
-        self.book_buttons = []
+        book_list_buttons = []
+        rented_books.append(book_list[self.book_number_final])
         book_list.pop(int(self.book_number_final))
         if len(self.get_books()) > 0:
             for book in self.get_books():
-                self.book_buttons.append(book)
+                book_list_buttons.append(book)
 
-            for book_button in self.book_buttons:
+            for book_button in book_list_buttons:
                 book_button.pack()
             self.book_details_label.pack()
             self.submit_button.pack()
@@ -254,11 +272,95 @@ class Page3(Page):
         print(f"{book_title} Confirmed! Enjoy!")
 
 
+    def rent_book_page_open(self):
+        self.refresh_books()
+        self.lift()
+
+
 class Page4(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
-        label = tk.Label(self, text="Select a Book to Return")
+        self.page_4_frame = tk.Frame(self, bg="white")
+        self.success_string = tk.StringVar(value="Select a Book to Return")
+        label = tk.Label(self.page_4_frame, textvariable=self.success_string)
         label.pack(side="top", fill="both", expand=True)
+        self.book_number_final = 0
+
+        self.book_details_string = tk.StringVar(value="")
+        self.book_details_label = tk.Label(self.page_4_frame, textvariable=self.book_details_string)
+        self.book_details_label.pack()
+
+        self.submit_button = tk.Button(self.page_4_frame, text="Confirm Return", state='disabled',
+                                       command=self.confirm_return)
+        self.submit_button.pack()
+        self.page_4_frame.grid(row=0, column=0)
+        self.page_4_frame.grid_rowconfigure(0, weight=1)
+        self.page_4_frame.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+    def refresh_books(self):
+        if len(rented_books) == 0:
+            self.book_details_string.set("No more books left!")
+            self.submit_button['state'] = 'disabled'
+        else:
+            self.book_details_string.set("")
+            self.submit_button['state'] = 'normal'
+        global rented_books_buttons
+        for book in rented_books_buttons:
+            book.pack_forget()
+        rented_books_buttons = []
+        for button in self.get_books():
+            rented_books_buttons.append(button)
+        self.submit_button.pack_forget()
+        for book in rented_books_buttons:
+            book.pack()
+        self.submit_button.pack()
+
+    def get_books(self):
+        global rented_books_buttons
+        buttons = []
+        for book in rented_books_buttons:
+            book.pack_forget()
+        rented_books_buttons = []
+        for i in range(len(rented_books)):
+            buttons.append(tk.Button(self.page_4_frame, text=rented_books[i], command=lambda i=i: self.open_this(i)))
+        return buttons
+
+    def open_this(self, i):
+        self.submit_button['state'] = 'normal'
+        self.book_number_final = i
+        self.book_details_string.set(f"{rented_books[i]} selected. Are you sure?")
+
+    def confirm_return(self):
+        book_title = rented_books[self.book_number_final]
+        self.book_details_string.set("")
+        self.book_details_label.pack_forget()
+        self.submit_button.pack_forget()
+        global rented_books_buttons
+        for book in rented_books_buttons:
+            book.pack_forget()
+        rented_books_buttons = []
+        book_list.append(rented_books[self.book_number_final])
+        book_list.sort()
+        rented_books.pop(int(self.book_number_final))
+        if len(self.get_books()) > 0:
+            for book in self.get_books():
+                rented_books_buttons.append(book)
+
+            for book_button in rented_books_buttons:
+                book_button.pack()
+            self.book_details_label.pack()
+            self.submit_button.pack()
+        else:
+            self.book_details_string.set("No more books left!")
+            self.book_details_label.pack()
+        print(f"{book_title} Confirmed! Enjoy!")
+
+    def rent_book_page_open(self):
+        self.refresh_books()
+        self.lift()
+
 
 
 
@@ -372,8 +474,8 @@ class MainView(tk.Frame):
 
         b1 = tk.Button(buttonframe, text="Create User", state="disabled", command=p1.lift)
         b2 = tk.Button(buttonframe, text="Create Book", state="disabled", command=p2.lift)
-        b3 = tk.Button(buttonframe, text="Rent Book", state="disabled", command=p3.lift)
-        b4 = tk.Button(buttonframe, text="Return Book", state="disabled", command=p4.lift)
+        b3 = tk.Button(buttonframe, text="Rent Book", state="disabled", command=p3.rent_book_page_open)
+        b4 = tk.Button(buttonframe, text="Return Book", state="disabled", command=p4.rent_book_page_open)
         b5 = tk.Button(buttonframe, text="Login", command=login)
 
 
@@ -386,8 +488,13 @@ class MainView(tk.Frame):
         p6.show()
 
 
+
+
+
 book_list = ['book 1', 'book 2', 'book 3', 'book 4']
+book_list_buttons = []
 rented_books = []
+rented_books_buttons = []
 
 if __name__ == "__main__":
     root = tk.Tk()
