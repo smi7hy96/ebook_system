@@ -43,9 +43,11 @@ class Page1(Page):
 
         self.response_string = tk.StringVar(value="")
         response = tk.Label(page_1_frame, textvariable=self.response_string)
+        response.configure(bg="white")
         response.pack()
 
         submit_button = tk.Button(page_1_frame, text="Create User", command=self.check_input)
+        submit_button.configure(bg="light blue")
         submit_button.pack()
 
         page_1_frame.grid(row=0, column=0)
@@ -79,6 +81,7 @@ class Page1(Page):
     def create_user(self, first_name, last_name, email, password): # ADD CLASS OBJECT TO STORE USER/ SQL QUERY
         self.response_string.set("User Created!!")
         user_list.append(User((len(user_list) + 1), password, first_name, last_name, email))
+        # user_table.create_user(password, first_name, last_name, email)
         print(user_list[-1].user_id)
         print(user_list[-1].first_name)
 
@@ -134,9 +137,11 @@ class Page2(Page):
 
         self.response_string = tk.StringVar(value="")
         response = tk.Label(page_2_frame, textvariable=self.response_string)
+        response.configure(bg="white")
         response.pack()
 
         submit_button = tk.Button(page_2_frame, text="Create Book", command=self.check_input)
+        submit_button.configure(bg="light blue")
         submit_button.pack()
 
         page_2_frame.grid(row=0, column=0)
@@ -167,6 +172,7 @@ class Page2(Page):
     def create_book(self, title, genre, release_date):  # ADD CLASS OBJECT TO STORE USER/ SQL QUERY
         self.response_string.set("Book Created!!")
         book_list.append(EBook((len(book_library_list) + 1), title, genre, release_date))
+        # ebook_table.create_book(title, genre, release_date, selected_user)
         book_library_list.append(book_list[-1])
         print(book_list[-1].book_id)
         print(book_list[-1].title)
@@ -204,9 +210,11 @@ class Page3(Page):
 
         self.book_details_string = tk.StringVar(value="")
         self.book_details_label = tk.Label(self.page_3_frame, textvariable=self.book_details_string)
+        self.book_details_label.configure(bg="white")
         self.book_details_label.pack()
 
         self.submit_button = tk.Button(self.page_3_frame, text="Confirm Booking", state='disabled', command=self.confirm_booking)
+        self.submit_button.configure(bg="light blue")
         self.submit_button.pack()
         self.page_3_frame.grid(row=0, column=0)
         self.page_3_frame.grid_rowconfigure(0, weight=1)
@@ -216,12 +224,19 @@ class Page3(Page):
 
     def refresh_books(self):
         global book_list_buttons
+        # for book_result_id in booking_table.get_all_by_id(selected_user):
+        #     for book in ebook_table.get_book_by_id(book_result_id):
+        #         selected_user.books.append(EBook(book[0], book[1], book[2], book[3]. book[4]))
+        # for x in range(len(selected_user.books)):
+        #     for y in range(len(book_list_1)):
+        #         if selected_user.books[x] == book_list_1[y]:
+        #             book_list_1.pop(y)
         if len(book_list) == 0:
             self.book_details_string.set("No more books left!")
             self.submit_button['state'] = 'disabled'
         else:
             self.book_details_string.set("")
-            self.submit_button['state'] = 'normal'
+            # self.submit_button['state'] = 'normal'
         for book in book_list_buttons:
             book.pack_forget()
         book_list_buttons = []
@@ -258,6 +273,7 @@ class Page3(Page):
 
         book_list_buttons = []
         selected_user.books.append(book_list[self.book_number_final])
+        # booking_table.create_booking(book_list_1[self.book_number_final].book_id, selected_user)
         book_list.pop(int(self.book_number_final))
         if len(self.get_books()) > 0:
             for book in self.get_books():
@@ -273,6 +289,7 @@ class Page3(Page):
         print(f"{book_title} Confirmed! Enjoy!")
 
     def rent_book_page_open(self):
+        self.submit_button['state'] = 'disabled'
         self.refresh_books()
         self.lift()
 
@@ -288,10 +305,12 @@ class Page4(Page):
 
         self.book_details_string = tk.StringVar(value="")
         self.book_details_label = tk.Label(self.page_4_frame, textvariable=self.book_details_string)
+        self.book_details_label.configure(bg="white")
         self.book_details_label.pack()
 
         self.submit_button = tk.Button(self.page_4_frame, text="Confirm Return", state='disabled',
                                        command=self.confirm_return)
+        self.submit_button.configure(bg="light blue")
         self.submit_button.pack()
         self.page_4_frame.grid(row=0, column=0)
         self.page_4_frame.grid_rowconfigure(0, weight=1)
@@ -344,6 +363,7 @@ class Page4(Page):
         book_list.append(selected_user.books[self.book_number_final])
         book_list.sort(key=lambda x: x.title)
         selected_user.books.pop(int(self.book_number_final))
+        # booking_table.return_book(selected_user.books[self.book_number_final].book_id, selected_user)
         if len(self.get_books()) > 0:
             for book in self.get_books():
                 rented_books_buttons.append(book)
@@ -358,6 +378,7 @@ class Page4(Page):
         print(f"{book_title} Returned! Hope you enjoyed it!!")
 
     def rent_book_page_open(self):
+        self.submit_button['state'] = 'disabled'
         self.refresh_books()
         self.lift()
 
@@ -452,6 +473,7 @@ class MainView(tk.Frame):
             else:
                 p5.incorrect_login()
 
+
         def check_login_details(): # ADD SQL QUERY TO CHECK PASSWORD
             found = False
             password = ''
@@ -492,12 +514,3 @@ class MainView(tk.Frame):
 
         p6.show()
 
-
-
-
-book_list = [ebook_1, ebook_2, ebook_3, ebook_4]
-book_library_list = book_list.copy()
-book_list_buttons = []
-rented_books_buttons = []
-user_list = [user_1, user_2]
-selected_user=''
