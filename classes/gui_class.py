@@ -1,6 +1,7 @@
 import tkinter as tk
 from preset_variables import *
-
+import webbrowser
+import os.path
 
 class Page(tk.Frame):
     def __init__(self, *args, **kwargs):
@@ -434,6 +435,93 @@ class Page6(Page):
         label = tk.Label(self, textvariable=self.landing_message)
         label.pack(side="top", fill="both", expand=True)
 
+class Page7(Page):
+    def __init__(self, *args, **kwargs):
+        Page.__init__(self, *args, **kwargs)
+        self.page_4_frame = tk.Frame(self, bg="white")
+        self.success_string = tk.StringVar(value="Select a Book to Read")
+        label = tk.Label(self.page_4_frame, textvariable=self.success_string)
+        label.pack(side="top", fill="both", expand=True)
+        self.book_number_final = 0
+
+        self.book_details_string = tk.StringVar(value="")
+        self.book_details_label = tk.Label(self.page_4_frame, textvariable=self.book_details_string)
+        self.book_details_label.configure(bg="white")
+        self.book_details_label.pack()
+
+        self.submit_button = tk.Button(self.page_4_frame, text="Open Book", state='disabled',
+                                       command=self.open_book)
+        self.submit_button.configure(bg="light blue")
+        self.submit_button.pack()
+        self.page_4_frame.grid(row=0, column=0)
+        self.page_4_frame.grid_rowconfigure(0, weight=1)
+        self.page_4_frame.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+    def refresh_books(self):
+        if len(selected_user.books) == 0:
+            self.book_details_string.set("No more books left!")
+            self.submit_button['state'] = 'disabled'
+        else:
+            self.book_details_string.set("")
+            self.submit_button['state'] = 'normal'
+        global rented_books_buttons
+        for book in rented_books_buttons:
+            book.pack_forget()
+        rented_books_buttons = []
+        for button in self.get_books():
+            rented_books_buttons.append(button)
+        self.submit_button.pack_forget()
+        for book in rented_books_buttons:
+            book.pack()
+        self.submit_button.pack()
+
+    def get_books(self):
+        global rented_books_buttons
+        buttons = []
+        for book in rented_books_buttons:
+            book.pack_forget()
+        rented_books_buttons = []
+        for i in range(len(selected_user.books)):
+            buttons.append(tk.Button(self.page_4_frame, text=selected_user.books[i].title, command=lambda i=i: self.open_this(i)))
+        return buttons
+
+    def open_this(self, i):
+        self.submit_button['state'] = 'normal'
+        self.book_number_final = i
+        self.book_details_string.set(f"{selected_user.books[i].title} selected. Are you sure?")
+
+    def open_book(self):
+        book_title = selected_user.books[self.book_number_final].title
+        genre = selected_user.books[self.book_number_final].genre
+        self.book_details_string.set("")
+        save_path = 'C:/Users/Smith/code/smi7hy96/ebook_system/books/'
+        complete_path = os.path.join(save_path, book_title + ".txt")
+        if self.check_book_exists(complete_path):
+            webbrowser.open(complete_path)
+        else:
+
+            file = open(complete_path, 'w')
+            file.write(f"{book_title} \n {genre} \n Once Upon a time....... \n The END")
+            file.close()
+            webbrowser.open(complete_path)
+
+    def check_book_exists(self, title):
+        try:
+            with self.__open_file('r', title) as file:
+                return True
+        except IOError:
+            return False
+
+    def __open_file(self, command, file_name):
+            return open(file_name, f'{command}')
+
+    def rent_book_page_open(self):
+        self.submit_button['state'] = 'disabled'
+        self.refresh_books()
+        self.lift()
+
 
 class MainView(tk.Frame):
     def __init__(self, *args, **kwargs):
@@ -444,6 +532,7 @@ class MainView(tk.Frame):
         p4 = Page4(self)
         p5 = Page5(self)
         p6 = Page6(self)
+        p7 = Page7(self)
 
 
         buttonframe = tk.Frame(self, bg="white")
@@ -457,6 +546,8 @@ class MainView(tk.Frame):
         p4.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
         p5.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
         p6.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        p7.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+
 
         def login():
             p5.show()
@@ -467,6 +558,7 @@ class MainView(tk.Frame):
                 b2.config(state="normal")
                 b3.config(state="normal")
                 b4.config(state="normal")
+                b6.config(state="normal")
                 b5.config(text="logout", command=logout)
                 p6.show()
                 p6.landing_message.set(f"HOMEPAGE \n Welcome {selected_user.first_name}! \n Use the buttons above to navigate the application")
@@ -498,6 +590,7 @@ class MainView(tk.Frame):
             b2.config(state="disabled")
             b3.config(state="disabled")
             b4.config(state="disabled")
+            b6.config(state="disabled")
             b5.config(text="login", command=login)
 
         b1 = tk.Button(buttonframe, text="Create User", state="disabled", command=p1.lift)
@@ -505,10 +598,12 @@ class MainView(tk.Frame):
         b3 = tk.Button(buttonframe, text="Rent Book", state="disabled", command=p3.rent_book_page_open)
         b4 = tk.Button(buttonframe, text="Return Book", state="disabled", command=p4.rent_book_page_open)
         b5 = tk.Button(buttonframe, text="Login", command=login)
+        b6 = tk.Button(buttonframe, text="Read Book", state="disabled", command=p7.rent_book_page_open)
 
         b1.pack(side="left")
         b2.pack(side="left")
         b3.pack(side="left")
+        b6.pack(side="left")
         b4.pack(side="left")
         b5.pack(side="left")
 
