@@ -6,6 +6,9 @@ class DBEbooks(DBConnection):
     def __init__(self):
         super().__init__()
 
+    def new_table(self):
+        self.__create_table()
+
     def __create_table(self):
         self.sql_query("""CREATE TABLE EBooks
 (

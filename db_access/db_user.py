@@ -6,6 +6,9 @@ class DBUsers(DBConnection):
     def __init__(self):
         super().__init__()
 
+    def new_table(self):
+        self.__create_table()
+
     def __create_table(self):
         self.sql_query("""CREATE TABLE Users
 (
@@ -30,10 +33,10 @@ phone_No VARCHAR(15)
     def create_user(self, password, first_name, last_name, email):
         self.sql_query(f"""INSERT INTO Users
 (
-password, first_name, las_name, email
+password, first_name, last_name, email, phone_No
 )
 VALUES
 (
-'{password}', '{first_name}', '{last_name}', '{email}'
+'{password}', '{first_name}', '{last_name}', '{email}', '123456789'
 );""")
         self.conn.commit()

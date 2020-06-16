@@ -2,7 +2,7 @@ import pyodbc
 
 
 class DBConnection:
-    def __init__(self, database="master", server='databases2.spartaglobal.academy', username='SA', password='Passw0rd2018'):        # Establish connection with any db in MSsql
+    def __init__(self, database="Northwind", server='databases2.spartaglobal.academy', username='SA', password='Passw0rd2018'):        # Establish connection with any db in MSsql
         self.server = server
         self.database = database
         self.username = username
@@ -17,7 +17,10 @@ class DBConnection:
 
     def __create_database(self, database_name):
         self.sql_query(f"CREATE DATABASE {database_name};")
-        self.conn.commit()
+        # self.conn.commit()
+
+    def use_db(self):
+        self.sql_query("USE ryan_db;")
 
     def _establish_connection(self):
         conn = 'DRIVER={SQL Server};SERVER=' + self.server + ';DATABASE=' + self.database + ';UID=' + self.username + ';PWD=' + self.password
